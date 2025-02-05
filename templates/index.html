@@ -3,454 +3,761 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepFake Detection</title>
+    <title>Deepfake Detection</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-color: #f4f4f4;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --error-color: #f44336;
+            --shadow-color: rgba(0, 0, 0, 0.1);
         }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --border-color: #404040;
+            --primary-color: #5cbb60;
+            --primary-hover: #4da751;
+            --error-color: #ff5252;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background: #f3f4f6;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            flex-direction: column;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
             padding: 20px;
-        }
-
-        h1 {
-            color: #2d3748;
-            margin-bottom: 20px;
-            font-size: 2.5rem;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        #uploadForm {
-            background: #ffffff;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
+            box-shadow: 2px 2px 10px var(--shadow-color);
+        }
+
+        .upload-section {
             text-align: center;
-            transition: transform 0.3s ease;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        #uploadForm:hover {
-            transform: scale(1.05);
-        }
-
-        #uploadForm input[type="file"] {
+        .video-preview {
+            max-width: 400px;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden;
             display: none;
         }
 
-        #uploadForm label {
-            font-size: 1.2rem;
-            color: #2d3748;
-            cursor: pointer;
-            padding: 10px 20px;
-            background-color: #4CAF50;
+        .video-preview video {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
             color: white;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s;
+            mix-blend-mode: difference;
         }
 
-        #uploadForm label:hover {
-            background-color: #45a049;
-        }
-
-        #uploadForm button {
-            margin-top: 20px;
+        .export-btn {
+            background-color: var(--primary-color);
+            color: white;
             padding: 10px 20px;
-            background-color: #1d72b8;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .comparison-view {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .comparison-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .comparison-item {
+            flex: 0 0 auto;
+            width: 300px;
+            background: var(--container-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        .slider-container {
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: var(--border-color);
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background .15s ease-in-out;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border: 0;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background .15s ease-in-out;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: var(--primary-hover);
+        }
+
+        .slider::-moz-range-thumb:hover {
+            background: var(--primary-hover);
+        }
+
+        .slider-value {
+            display: inline-block;
+            position: relative;
+            width: 60px;
+            color: var(--primary-color);
+            line-height: 20px;
+            text-align: center;
+            border-radius: 3px;
+            background: var(--container-bg);
+            padding: 5px 10px;
+            margin-left: 8px;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s;
         }
 
-        #uploadForm button:hover {
-            background-color: #0e61a0;
+        button:hover {
+            background-color: var(--primary-hover);
         }
 
-        #result {
-            margin-top: 30px;
-            width: 100%;
-            max-width: 800px;
-            background: #ffffff;
-            border-radius: 10px;
+        .result {
+            margin: 20px 0;
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            background-color: var(--container-bg);
+            border-radius: 5px;
         }
 
-        #result.show {
-            display: block;
-            opacity: 1;
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
         }
 
-        #result h2, #result h3 {
-            color: #2d3748;
-            font-size: 1.8rem;
-            margin-bottom: 15px;
+        .metric-card {
+            padding: 15px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+
+        .frames-section {
+            margin-top: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: var(--container-bg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             font-weight: bold;
+            color: var(--text-color);
+            transition: all 0.3s ease;
         }
 
-        #result h3 {
-            font-size: 1.4rem;
+        .tab:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .frames-container {
+            display: none;
+        }
+
+        .frames-container.active {
+            display: block;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
             margin-top: 20px;
         }
 
-        #result p {
-            font-size: 1.1rem;
-            margin: 10px 0;
-            color: #4a5568;
-        }
-
-        #result p span {
-            font-weight: bold;
-            color: #38a169;
-        }
-
-        /* Horizontal Scrollable Frame Gallery */
-        .frame-gallery-container {
-            width: 100%;
-            overflow-x: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #888 #f1f1f1;
-        }
-
-        .frame-gallery {
+        .timeline-item {
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            align-items: center;
             padding: 15px;
-            overflow-x: scroll;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .frame-gallery::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .frame-gallery::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: var(--container-bg);
             border-radius: 10px;
+            box-shadow: 0 2px 5px var(--shadow-color);
         }
 
-        .frame-gallery::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-
-        .frame-gallery::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .frame-gallery .gallery-item {
-            flex: 0 0 auto;
-            scroll-snap-align: center;
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-
-        .frame-gallery .gallery-item img {
-            width: 200px;
-            height: 150px;
+        .timeline-image {
+            width: 320px;
+            height: 180px;
             object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 5px;
         }
 
-        .frame-gallery .gallery-item:hover {
-            transform: scale(1.05);
+        .timeline-info {
+            flex: 1;
         }
 
-        .frame-gallery .gallery-item .overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.5);
-            overflow: hidden;
+        .confidence-bar {
             width: 100%;
-            height: 0;
-            transition: 0.5s ease;
+            height: 20px;
+            background-color: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
         }
 
-        .frame-gallery .gallery-item:hover .overlay {
-            height: 30%;
+        .confidence-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
         }
 
-        .frame-gallery .gallery-item .overlay-text {
-            color: white;
-            font-size: 12px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.3s;
+        .confidence-fill.fake {
+            background-color: var(--error-color);
         }
 
-        .frame-gallery .gallery-item:hover .overlay-text {
-            opacity: 1;
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
         }
 
-        /* Loading Spinner */
-        #loadingSpinner {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 2s linear infinite;
+        .grid-item {
+            background: var(--container-bg);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px var(--shadow-color);
         }
 
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        .grid-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
 
-        @media (max-width: 600px) {
-            .frame-gallery .gallery-item img {
-                width: 150px;
-                height: 100px;
-            }
+        .prediction-real {
+            color: var(--primary-color);
+            font-weight: bold;
         }
-        /* Feedback Section */
-#feedbackButtons {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
 
-#feedbackButtons button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s, background-color 0.3s, box-shadow 0.3s;
-}
+        .prediction-fake {
+            color: var(--error-color);
+            font-weight: bold;
+        }
 
-/* Correct Button */
-#feedbackButtons button:first-child {
-    background-color: #38a169; /* Green */
-    color: white;
-}
+        h3 {
+            color: var(--text-color);
+            margin-top: 30px;
+        }
 
-#feedbackButtons button:first-child:hover {
-    background-color: #2f855a; /* Darker Green */
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Incorrect Button */
-#feedbackButtons button:last-child {
-    background-color: #e53e3e; /* Red */
-    color: white;
-}
-
-#feedbackButtons button:last-child:hover {
-    background-color: #c53030; /* Darker Red */
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
+        .stats-line {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>DeepFake Detection</h1>
-    <div id="uploadForm">
-        <label for="videoFile">Choose a Video File</label>
-        <input type="file" id="videoFile" accept="video/*">
-        <button onclick="uploadVideo()">Upload & Analyze</button>
-    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+        🌓
+    </button>
 
-    <div id="loadingSpinner"></div>
+    <div class="container">
+        <div class="upload-section">
+            <h2>Upload a Video for Deepfake Detection</h2>
+            <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+                <input type="file" name="file" accept="video/*" required id="video-input">
+                <div class="video-preview" id="video-preview">
+                    <video controls>
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="slider-container">
+                    <label for="frame-skip">Frame Sampling Rate (frames to skip)</label>
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <input type="range" min="1" max="30" value="15" class="slider" id="frame-skip" name="frame_skip">
+                        <span class="slider-value" id="frame-skip-value">15</span>
+                    </div>
+                    <small style="color: var(--text-color);">Lower value = more frames analyzed (slower), Higher value = fewer frames analyzed (faster)</small>
+                </div>
+                <button type="submit">Upload & Analyze</button>
+            </form>
 
-    <div id="result">
-        <h2>Detection Results</h2>
-        <p id="fakeDecision"></p>
-        <p id="consistentFakeFrames"></p>
-        <p id="averageFakeScore"></p>
-
-        <h3>Extracted Frames</h3>
-        <div class="frame-gallery-container">
-            <div id="frameGallery" class="frame-gallery"></div>
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                    <div class="progress-text" id="progress-text">0%</div>
+                </div>
+                <p id="progress-status">Processing video...</p>
+            </div>
         </div>
 
-        <h3>Detected Faces</h3>
-        <div class="frame-gallery-container">
-            <div id="detectedFacesGallery" class="frame-gallery"></div>
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
         </div>
+        {% endif %}
 
-        <!-- Feedback Section -->
-        <h3>Is the Prediction Correct?</h3>
-        <div id="feedbackButtons">
-            <button onclick="submitFeedback('correct')">Correct</button>
-            <button onclick="submitFeedback('incorrect')">Incorrect</button>
-        </div>
-    </div>
+        {% if prediction %}
+        <div class="result">
+            <h3>Analysis Results</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <h4>Final Prediction</h4>
+                    <div class="{% if prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %} metric-value">
+                        {{ prediction|upper }}
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <h4>Confidence Score</h4>
+                    <div class="metric-value">{{ confidence_score }}%</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Real Frames</h4>
+                    <div class="metric-value">{{ real_frames }} / {{ processed_frames_count }}</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Fake Frames</h4>
+                    <div class="metric-value">{{ fake_frames }} / {{ processed_frames_count }}</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Video Stats</h4>
+                    <div class="metric-value">
+                        <div class="stats-line">Total Frames: {{ total_frames }}</div>
+                        <div class="stats-line">FPS: {{ fps }}</div>
+                        <div class="stats-line">Analyzed: {{ processed_frames_count }} frames</div>
+                    </div>
+                </div>
+            </div>
 
-    <script>
-        const videoFile = document.getElementById('videoFile');
-        const uploadForm = document.getElementById('uploadForm');
-        const resultDiv = document.getElementById('result');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const fakeDecisionEl = document.getElementById('fakeDecision');
-        const consistentFakeFramesEl = document.getElementById('consistentFakeFrames');
-        const averageFakeScoreEl = document.getElementById('averageFakeScore');
-        const frameGallery = document.getElementById('frameGallery');
-        const detectedFacesGallery = document.getElementById('detectedFacesGallery');
-        let currentVideoName = ''; // To track video name for feedback submission
-        let currentPrediction = ''; // To track model prediction for feedback
+            {% if processed_frames %}
+            <div class="frames-section">
+                <h3>Analyzed Frames</h3>
+                <div class="tabs">
+                    <button class="tab active" onclick="showFrames('all')">All Frames</button>
+                    <button class="tab" onclick="showFrames('real')">Real Frames</button>
+                    <button class="tab" onclick="showFrames('fake')">Fake Frames</button>
+                    <button class="tab" onclick="showFrames('timeline')">Timeline View</button>
+                    <button class="tab" onclick="showFrames('grid')">Grid View</button>
+                    <button class="tab" onclick="showFrames('comparison')">Comparison View</button>
+                </div>
 
-        // Custom file input label
-        videoFile.addEventListener('change', function() {
-            const label = uploadForm.querySelector('label');
-            label.textContent = this.files[0] ? this.files[0].name : 'Choose a Video File';
-        });
+                <!-- All Frames View -->
+                <div id="all-frames" class="frames-container active">
+                    <div class="timeline">
+                    {% for frame in processed_frames %}
+                        <div class="timeline-item">
+                            <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="timeline-image">
+                            <div class="timeline-info">
+                                <h4>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</h4>
+                                <p>Prediction: 
+                                    <span class="{% if frame.prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %}">
+                                        {{ frame.prediction }}
+                                    </span>
+                                </p>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill {% if frame.prediction == 'fake' %}fake{% endif %}" 
+                                         style="width: {{ frame.confidence * 100 }}%"></div>
+                                </div>
+                                <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
 
-        function createGalleryItem(src, alt, index) {
-            const galleryItem = document.createElement('div');
-            galleryItem.classList.add('gallery-item');
+                <!-- Real Frames View -->
+                <div id="real-frames" class="frames-container">
+                    <div class="grid-view">
+                    {% for frame in processed_frames %}
+                        {% if frame.prediction == 'real' %}
+                        <div class="grid-item">
+                            <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="grid-image">
+                            <p>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</p>
+                            <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+                </div>
 
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = alt;
+                <!-- Fake Frames View -->
+                <div id="fake-frames" class="frames-container">
+                    <div class="grid-view">
+                    {% for frame in processed_frames %}
+                        {% if frame.prediction == 'fake' %}
+                        <div class="grid-item">
+                            <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="grid-image">
+                            <p>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</p>
+                            <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+                </div>
 
-            const overlay = document.createElement('div');
-            overlay.classList.add('overlay');
+                <!-- Timeline View -->
+                <div id="timeline-view" class="frames-container">
+                    <div class="timeline">
+                    {% for frame in processed_frames %}
+                        <div class="timeline-item">
+                            <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="timeline-image">
+                            <div class="timeline-info">
+                                <h4>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</h4>
+                                <p>Prediction: 
+                                    <span class="{% if frame.prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %}">
+                                        {{ frame.prediction }}
+                                    </span>
+                                </p>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill {% if frame.prediction == 'fake' %}fake{% endif %}" 
+                                         style="width: {{ frame.confidence * 100 }}%"></div>
+                                </div>
+                                <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
 
-            const overlayText = document.createElement('div');
-            overlayText.classList.add('overlay-text');
-            overlayText.textContent = `Frame ${index + 1}`;
+                <!-- Grid View -->
+                <div id="grid-view" class="frames-container">
+                    <div class="grid-view">
+                    {% for frame in processed_frames %}
+                        <div class="grid-item">
+                            <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="grid-image">
+                            <p>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</p>
+                            <p>Prediction: 
+                                <span class="{% if frame.prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %}">
+                                    {{ frame.prediction }}
+                                </span>
+                            </p>
+                            <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
 
-            overlay.appendChild(overlayText);
-            galleryItem.appendChild(img);
-            galleryItem.appendChild(overlay);
+                <!-- Comparison View -->
+                <div id="comparison-view" class="frames-container">
+                    <div class="comparison-container">
+                        <div class="comparison-item">
+                            <h4>Most Confident Real</h4>
+                            {% set most_confident_real = processed_frames|selectattr("prediction", "equalto", "real")|sort(attribute="confidence")|last %}
+                            {% if most_confident_real %}
+                            <img src="/static/{{ most_confident_real.frame_path }}" alt="Most Confident Real" class="grid-image">
+                            <p>Confidence: {{ "%.2f"|format(most_confident_real.confidence * 100) }}%</p>
+                            <p>Frame #{{ most_confident_real.frame_number }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="comparison-item">
+                            <h4>Most Confident Fake</h4>
+                            {% set most_confident_fake = processed_frames|selectattr("prediction", "equalto", "fake")|sort(attribute="confidence")|last %}
+                            {% if most_confident_fake %}
+                            <img src="/static/{{ most_confident_fake.frame_path }}" alt="Most Confident Fake" class="grid-image">
+                            <p>Confidence: {{ "%.2f"|format(most_confident_fake.confidence * 100) }}%</p>
+                            <p>Frame #{{ most_confident_fake.frame_number }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-            return galleryItem;
-        }
+                <div class="export-options" style="text-align: center; margin-top: 20px;">
+                    <button class="export-btn" onclick="exportResults('pdf')">Export as PDF</button>
+                    <button class="export-btn" onclick="exportResults('csv')">Export as CSV</button>
+                </div>
+            </div>
 
-        function uploadVideo() {
-            if (!videoFile.files.length) {
-                alert('Please select a video file first.');
-                return;
-            }
+            <script>
+                // Theme toggle
+                function toggleTheme() {
+                    document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('theme', document.body.dataset.theme);
+                }
 
-            // Reset previous results
-            resultDiv.classList.remove('show');
-            frameGallery.innerHTML = '';
-            detectedFacesGallery.innerHTML = '';
+                // Set initial theme
+                document.body.dataset.theme = localStorage.getItem('theme') || 'light';
 
-            // Show loading spinner
-            loadingSpinner.style.display = 'block';
+                // Video preview
+                const videoInput = document.getElementById('video-input');
+                const videoPreview = document.getElementById('video-preview');
+                const videoElement = videoPreview.querySelector('video');
 
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('video', videoFile.files[0]);
-
-            // Send upload request
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading spinner
-                loadingSpinner.style.display = 'none';
-
-                // Display results
-                resultDiv.classList.add('show');
-                currentVideoName = data.video_name; // Store video name for feedback
-                currentPrediction = data.fake_decision_by_count ? 'fake' : 'real'; // Store prediction
-
-                // Set fake decision text
-                const fakeDecisionByCount = data.fake_decision_by_count ?
-                    '<span style="color: red;">Likely Deepfake (by frame count)</span>' :
-                    '<span style="color: green;">Likely Real (by frame count)</span>';
-
-                const fakeDecisionByTemporal = data.fake_decision_by_temporal ?
-                    '<span style="color: red;">Likely Deepfake (by temporal analysis)</span>' :
-                    '<span style="color: green;">Likely Real (by temporal analysis)</span>';
-
-                fakeDecisionEl.innerHTML = `Deepfake Detection: ${fakeDecisionByCount} / ${fakeDecisionByTemporal}`;
-                consistentFakeFramesEl.innerHTML = `Consistent Fake Frames: <span>${data.consistent_fake_frames}</span>`;
-                averageFakeScoreEl.innerHTML = `Average Fake Score: <span>${(data.average_fake_score * 100).toFixed(2)}%</span>`;
-
-                // Display extracted frames with hover effect
-                data.frame_paths.forEach((framePath, index) => {
-                    const galleryItem = createGalleryItem(framePath, 'Extracted Frame', index);
-                    frameGallery.appendChild(galleryItem);
+                videoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const url = URL.createObjectURL(file);
+                        videoElement.src = url;
+                        videoPreview.style.display = 'block';
+                    }
                 });
 
-                // Display detected faces with hover effect
-                let faceIndex = 0;
-                data.face_frame_paths.forEach(framefaces => {
-                    framefaces.forEach(facePath => {
-                        const galleryItem = createGalleryItem(facePath, 'Detected Face', faceIndex);
-                        detectedFacesGallery.appendChild(galleryItem);
-                        faceIndex++;
+                // Frame skip slider
+                document.addEventListener('DOMContentLoaded', function() {
+                    const slider = document.getElementById("frame-skip");
+                    const output = document.getElementById("frame-skip-value");
+                    if (slider && output) {
+                        output.innerHTML = slider.value;
+                        
+                        slider.oninput = function() {
+                            output.innerHTML = this.value;
+                        }
+                    }
+                });
+
+                // Upload progress simulation
+                const uploadForm = document.getElementById('upload-form');
+                const progressContainer = document.getElementById('progress-container');
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-text');
+                const progressStatus = document.getElementById('progress-status');
+
+                uploadForm.onsubmit = function() {
+                    progressContainer.style.display = 'block';
+                    simulateProgress();
+                    return true;
+                }
+
+                function simulateProgress() {
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        if (progress > 100) progress = 100;
+                        
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = Math.round(progress) + '%';
+                        
+                        if (progress === 100) {
+                            clearInterval(interval);
+                            progressStatus.textContent = 'Processing complete!';
+                        }
+                    }, 500);
+                }
+
+                // Export functions
+                function exportResults(format) {
+                    const data = {
+                        total_frames: {{ total_frames }},
+                        processed_frames_count: {{ processed_frames_count }},
+                        prediction: "{{ prediction }}",
+                        confidence: {{ confidence_score }},
+                        real_count: {{ real_frames }},
+                        fake_count: {{ fake_frames }},
+                        fps: {{ fps }},
+                        frame_skip: {{ frame_skip }},
+                        processed_frames: {{ processed_frames|tojson }}
+                    };
+
+                    fetch(`/export/${format}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Export failed');
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                        const filename = `deepfake-analysis-${timestamp}.${format}`;
+                        
+                        // Create a link and trigger download
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = filename;
+                        
+                        document.body.appendChild(a);
+                        a.click();
+                        
+                        // Cleanup
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    })
+                    .catch(error => {
+                        console.error('Export error:', error);
+                        alert('Failed to export results. Please try again.');
                     });
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                loadingSpinner.style.display = 'none';
-                alert('An error occurred during video processing.');
-            });
-        }
+                }
 
-        function submitFeedback(feedback) {
-            if (!currentVideoName || !currentPrediction) {
-                alert('No video data available for feedback submission.');
-                return;
-            }
-
-            const feedbackData = {
-                video_name: currentVideoName,
-                model_prediction: currentPrediction,
-                user_feedback: feedback
-            };
-
-            fetch('/feedback', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(feedbackData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('Thank you for your feedback!');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while submitting feedback.');
-            });
-        }
-    </script>
+                // Frame view tabs
+                function showFrames(type) {
+                    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.frames-container').forEach(container => container.classList.remove('active'));
+                    
+                    document.querySelector(`.tab[onclick="showFrames('${type}')"]`).classList.add('active');
+                    
+                    let containerId;
+                    switch(type) {
+                        case 'all':
+                            containerId = 'all-frames';
+                            break;
+                        case 'real':
+                            containerId = 'real-frames';
+                            break;
+                        case 'fake':
+                            containerId = 'fake-frames';
+                            break;
+                        case 'timeline':
+                            containerId = 'timeline-view';
+                            break;
+                        case 'grid':
+                            containerId = 'grid-view';
+                            break;
+                        case 'comparison':
+                            containerId = 'comparison-view';
+                            break;
+                    }
+                    document.getElementById(containerId).classList.add('active');
+                }
+            </script>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
