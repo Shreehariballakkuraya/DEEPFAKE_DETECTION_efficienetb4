@@ -490,12 +490,12 @@
                             <div class="timeline-info">
                                 <h4>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</h4>
                                 <p>Prediction: 
-                                    <span class="{% if frame.prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %}">
+                                    <span class="{% if frame.prediction == 'celeb-real' %}prediction-real{% else %}prediction-fake{% endif %}">
                                         {{ frame.prediction }}
                                     </span>
                                 </p>
                                 <div class="confidence-bar">
-                                    <div class="confidence-fill {% if frame.prediction == 'fake' %}fake{% endif %}" 
+                                    <div class="confidence-fill {% if frame.prediction == 'celeb-synthesis' %}fake{% endif %}" 
                                          style="width: {{ frame.confidence * 100 }}%"></div>
                                 </div>
                                 <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
@@ -509,7 +509,7 @@
                 <div id="real-frames" class="frames-container">
                     <div class="grid-view">
                     {% for frame in processed_frames %}
-                        {% if frame.prediction == 'real' %}
+                        {% if frame.prediction == 'celeb-real' %}
                         <div class="grid-item">
                             <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="grid-image">
                             <p>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</p>
@@ -524,7 +524,7 @@
                 <div id="fake-frames" class="frames-container">
                     <div class="grid-view">
                     {% for frame in processed_frames %}
-                        {% if frame.prediction == 'fake' %}
+                        {% if frame.prediction == 'celeb-synthesis' %}
                         <div class="grid-item">
                             <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="grid-image">
                             <p>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</p>
@@ -544,12 +544,12 @@
                             <div class="timeline-info">
                                 <h4>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</h4>
                                 <p>Prediction: 
-                                    <span class="{% if frame.prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %}">
+                                    <span class="{% if frame.prediction == 'celeb-real' %}prediction-real{% else %}prediction-fake{% endif %}">
                                         {{ frame.prediction }}
                                     </span>
                                 </p>
                                 <div class="confidence-bar">
-                                    <div class="confidence-fill {% if frame.prediction == 'fake' %}fake{% endif %}" 
+                                    <div class="confidence-fill {% if frame.prediction == 'celeb-synthesis' %}fake{% endif %}" 
                                          style="width: {{ frame.confidence * 100 }}%"></div>
                                 </div>
                                 <p>Confidence: {{ "%.2f"|format(frame.confidence * 100) }}%</p>
@@ -567,7 +567,7 @@
                             <img src="/static/{{ frame.frame_path }}" alt="Frame {{ frame.frame_number }}" class="grid-image">
                             <p>Frame #{{ frame.frame_number }} ({{ frame.timestamp }})</p>
                             <p>Prediction: 
-                                <span class="{% if frame.prediction == 'real' %}prediction-real{% else %}prediction-fake{% endif %}">
+                                <span class="{% if frame.prediction == 'celeb-real' %}prediction-real{% else %}prediction-fake{% endif %}">
                                     {{ frame.prediction }}
                                 </span>
                             </p>
@@ -582,7 +582,7 @@
                     <div class="comparison-container">
                         <div class="comparison-item">
                             <h4>Most Confident Real</h4>
-                            {% set most_confident_real = processed_frames|selectattr("prediction", "equalto", "real")|sort(attribute="confidence")|last %}
+                            {% set most_confident_real = processed_frames|selectattr("prediction", "equalto", "celeb-real")|sort(attribute="confidence")|last %}
                             {% if most_confident_real %}
                             <img src="/static/{{ most_confident_real.frame_path }}" alt="Most Confident Real" class="grid-image">
                             <p>Confidence: {{ "%.2f"|format(most_confident_real.confidence * 100) }}%</p>
@@ -591,7 +591,7 @@
                         </div>
                         <div class="comparison-item">
                             <h4>Most Confident Fake</h4>
-                            {% set most_confident_fake = processed_frames|selectattr("prediction", "equalto", "fake")|sort(attribute="confidence")|last %}
+                            {% set most_confident_fake = processed_frames|selectattr("prediction", "equalto", "celeb-synthesis")|sort(attribute="confidence")|last %}
                             {% if most_confident_fake %}
                             <img src="/static/{{ most_confident_fake.frame_path }}" alt="Most Confident Fake" class="grid-image">
                             <p>Confidence: {{ "%.2f"|format(most_confident_fake.confidence * 100) }}%</p>
@@ -632,17 +632,13 @@
                 });
 
                 // Frame skip slider
-                document.addEventListener('DOMContentLoaded', function() {
-                    const slider = document.getElementById("frame-skip");
-                    const output = document.getElementById("frame-skip-value");
-                    if (slider && output) {
-                        output.innerHTML = slider.value;
-                        
-                        slider.oninput = function() {
-                            output.innerHTML = this.value;
-                        }
-                    }
-                });
+                const slider = document.getElementById("frame-skip");
+                const output = document.getElementById("frame-skip-value");
+                output.innerHTML = slider.value;
+
+                slider.oninput = function() {
+                    output.innerHTML = this.value;
+                }
 
                 // Upload progress simulation
                 const uploadForm = document.getElementById('upload-form');
